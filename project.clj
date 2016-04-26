@@ -1,8 +1,8 @@
-(defproject clojure-img-dl "1.0.0-RELEASE"
+(defproject clojure-img-dl "0.1.0"
   :description "An imgur album downloader written in Clojure"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :url "https://github.com/frzolp/clojure-img-dl"
+  :license {:name "GNU General Public License"
+            :url "http://www.gnu.org/licenses/gpl.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/data.json "0.2.6"]
                  [clj-http "2.1.0"]

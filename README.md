@@ -1,36 +1,78 @@
-# clojure-imgur
+# clojure-img-dl
 
-FIXME: description
+A multi-threaded Imgur album downloader written in Clojure.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Clone the repository, then sign up for an API key at
+
+    https://api.imgur.com
+
+When you have your API key, save it to the file resource/apikey.properties:
+
+    apikey=(your key here)
+
+In the repository root, build the JAR with
+
+    $ lein uberjar
+
+The generated JAR will be located in the target/uberjar directory.
 
 ## Usage
 
-FIXME: explanation
+    $ java -jar clojure-imgur-0.1.0-standalone.jar [album_url [album_url ...]]
 
-    $ java -jar clojure-imgur-0.1.0-standalone.jar [args]
+Albums will be saved to the current working directory with the name
 
-## Options
+    Imgur_(album title)
 
-FIXME: listing of options this app accepts.
+If an album title is not present, the album is saved as
+
+    Imgur_(album ID)
+
+Album titles are trimmed to a length of 30 characters with invalid path characters removed.
+Images are saved within the folders with an index with leading zeroes, followed by the
+image title.
+
+    Imgur_(album)/(index)_(image title).(ext)
+
+The image description is used when a title is missing.
+
+    Imgur_(album)/(index)_(image descr).(ext)
+
+Finally, if there is no description, the image ID is used.
+
+    Imgur_(album)/(index)_(image ID).(ext)
 
 ## Examples
 
-...
+### One album
 
-### Bugs
+    $ java -jar clojure-imgur-0.1.0-standalone.jar http://imgur.com/a/KSz6k
 
-...
+Saves images to
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+    Imgur_World's oldest examples of ord/001_Oldest socks.png
+    Imgur_World's oldest examples of ord/002_Oldest written recipe.png
+    ...
+
+### Two albums
+
+    $ java -jar clojure-imgur-0.1.0-standalone.jar \
+                http://imgur.com/a/3wkhb \
+                http://imgur.com/a/XXeq7
+
+Saves images to
+
+    Imgur_Space Wallpapers/001_CrHYfTG.jpg
+    Imgur_Space Wallpapers/002_gQp3VSW.jpg
+    ...
+    Imgur_Rather large wallpaper dump/001_xAEryhE.jpg
+    Imgur_Rather large wallpaper dump/002_zgwBXjW.jpg
+    ...
 
 ## License
 
-Copyright © 2016 FIXME
+Copyright © 2016 Francis Zolp
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the GNU General Public License.

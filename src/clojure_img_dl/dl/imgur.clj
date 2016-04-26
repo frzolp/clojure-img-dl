@@ -56,7 +56,7 @@
     (string/trim (string/replace (if (> (count (:title album)) 30) ; If the title is over 30 chars, trim it
                                    (subs (:title album) 0 30)
                                    (:title album))
-                                 #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;]" "")) ; Strip out invalid character and return
+                                 #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;\%\r\n]" "")) ; Strip out invalid character and return
     (:id album))) ; Otherwise, use the raw imgur album ID
 
 (defn get-file-name
@@ -69,12 +69,12 @@
          (string/trim (string/replace (if (> (count (:title image)) 30) ; If the title is over 30 chars, trim it
                                         (subs (:title image) 0 30)
                                         (:title image))
-                                      #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;]" "")) ; Strip out invalid characters
+                                      #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;\%\r\n]" "")) ; Strip out invalid characters
          (if (not (nil? (:description image))) ; If the title is not available, use the description
            (string/trim (string/replace (if (> (count (:description image)) 30) ; If the desc is over 30 chars, trim it
                                           (subs (:description image) 0 30)
                                           (:description image))
-                                        #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;]" "")) ; Strip out invalid characters
+                                        #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;\%\r\n]" "")) ; Strip out invalid characters
            (-> (:link image) ; Without a title or description, use imgur's file name
                (string/split #"/") ; Split the field by forward slash
                last ; The last item will be the file name + extension
