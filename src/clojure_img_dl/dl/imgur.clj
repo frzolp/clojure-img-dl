@@ -63,8 +63,8 @@
   "Creates a file name for the image, as a three digit index,
   then the title, description, or image ID.
   (ex. \"001_test image.jpg\", \"002_abCDeFG.png\")"
-  [image index]
-  (str (format "%03d" index) "_"
+  [image index fmt]
+  (str (format fmt index) "_"
        (if (not (nil? (:title image))) ; Use the image title field if available
          (string/trim (string/replace (if (> (count (:title image)) 30) ; If the title is over 30 chars, trim it
                                         (subs (:title image) 0 30)
@@ -133,6 +133,7 @@
                (conj paths (create-save-path (get-album-title album) ; Add current image destination path
                                              (get-file-name (first images)
                                                             (+ 1 (- (count (:images album))
-                                                                    (count images))))))
+                                                                    (count images)))
+                                                            (str "%0" (count (str (count (:images album)))) "d"))))
                (conj links (:link (first images)))) ; Add current image source URL
-        (parallel-save-image paths links))))) ; If no more images, execute the parallel save
+        (time (parallel-save-image paths links)))))) ; If no more images, execute the parallel save
