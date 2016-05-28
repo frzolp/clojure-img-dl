@@ -4,11 +4,17 @@ A multi-threaded Imgur album downloader written in Clojure.
 
 ## Installation
 
-Clone the repository, then sign up for an API key at
+### From release
 
-    https://api.imgur.com
+Pre-compiled JAR files are available at https://github.com/frzolp/clojure-img-dl/releases
 
-When you have your API key, save it to the file resource/apikey.properties:
+### From source
+
+You will need [Leiningen](http://leiningen.org/), at least version 2.6.1 to compile the source.
+
+Clone the repository, then sign up for an API key at https://api.imgur.com
+
+When you have your API key, save it to the file resources/apikey.properties:
 
     apikey=(your key here)
 
