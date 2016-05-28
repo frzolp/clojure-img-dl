@@ -1,4 +1,4 @@
-(defproject clojure-img-dl "0.1.0"
+(defproject clojure-img-dl "0.1.1"
   :description "An imgur album downloader written in Clojure"
   :url "https://github.com/frzolp/clojure-img-dl"
   :license {:name "GNU General Public License"
