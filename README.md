@@ -1,6 +1,6 @@
 # clojure-img-dl
 
-A multi-threaded Imgur album downloader written in Clojure.
+A multi-threaded image host album downloader written in Clojure.
 
 ## Installation
 
@@ -26,35 +26,35 @@ The generated JAR will be located in the target/uberjar directory.
 
 ## Usage
 
-    $ java -jar clojure-imgur-0.1.0-standalone.jar [album_url [album_url ...]]
+    $ java -jar clojure-img-dl-0.1.0-standalone.jar [album_url [album_url ...]]
 
 Albums will be saved to the current working directory with the name
 
-    Imgur_(album title)
+    (image host)_(album title)
 
 If an album title is not present, the album is saved as
 
-    Imgur_(album ID)
+    (image host)_(album ID)
 
 Album titles are trimmed to a length of 30 characters with invalid path characters removed.
 Images are saved within the folders with an index with leading zeroes, followed by the
 image title.
 
-    Imgur_(album)/(index)_(image title).(ext)
+    (image host)_(album)/(index)_(image title).(ext)
 
 The image description is used when a title is missing.
 
-    Imgur_(album)/(index)_(image descr).(ext)
+    (image host)_(album)/(index)_(image descr).(ext)
 
 Finally, if there is no description, the image ID is used.
 
-    Imgur_(album)/(index)_(image ID).(ext)
+    (image host)_(album)/(index)_(image ID).(ext)
 
 ## Examples
 
 ### One album
 
-    $ java -jar clojure-imgur-0.1.0-standalone.jar http://imgur.com/a/KSz6k
+    $ java -jar clojure-img-dl-0.1.0-standalone.jar http://imgur.com/a/KSz6k
 
 Saves images to
 
@@ -64,7 +64,7 @@ Saves images to
 
 ### Two albums
 
-    $ java -jar clojure-imgur-0.1.0-standalone.jar \
+    $ java -jar clojure-img-dl-0.1.0-standalone.jar \
                 http://imgur.com/a/3wkhb \
                 http://imgur.com/a/XXeq7
 
