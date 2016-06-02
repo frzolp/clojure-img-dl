@@ -17,30 +17,20 @@
             [clj-http.client :as client]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojurewerkz.propertied.properties :as p])
-  (:import [java.io File])
+            [clojurewerkz.propertied.properties :as p]
+            [clojure-img-dl.util.download :as dl])
   (:gen-class))
 
 ; Client ID needed to interact with imgur's API
-(def auth-key (str "Client-ID " (-> (io/resource "apikey.properties")
+(def ^{:private true} auth-key (str "Client-ID " (-> (io/resource "apikey.properties")
                                     (p/load-from)
                                     (p/properties->map true)
                                     (:apikey))))
 
 ; Base URL for API calls
-(def api-base "https://api.imgur.com/3/")
+(def ^{:private true} api-base "https://api.imgur.com/3/")
 
-; Semaphore used to keep console output tidy
-(def o (Object.))
-
-(defn copy
-  "Downloads an image from a URL and saves it to a file on disk"
-  [uri file]
-  (with-open [in (io/input-stream uri)     ; Input stream (from image URL)
-              out (io/output-stream file)] ; Output stream (to local file)
-    (io/copy in out)))
-
-(defn get-album
+(defn- get-album
   "Request an album's information from imgur and convert the JSON to a map"
   [album-id]
   (-> (str api-base "/album/" album-id) ; Assemble the API version of the URL
@@ -49,7 +39,7 @@
       (json/read-str :key-fn keyword) ; Parse the body's JSON into a map
       :data)) ; Return the data field
 
-(defn get-album-title
+(defn- get-album-title
   "Gets a title for the album, using the title field if available, falls back to album ID"
   [album]
   (if (not (nil? (:title album))) ; Does the album have a title?
@@ -59,7 +49,7 @@
                                  #"[<>:\"/\\\|\?\*\+\-\^\$\(\)\.,;\%\r\n]" "")) ; Strip out invalid character and return
     (:id album))) ; Otherwise, use the raw imgur album ID
 
-(defn get-file-name
+(defn- get-file-name
   "Creates a file name for the image, as a three digit index,
   then the title, description, or image ID.
   (ex. \"001_test image.jpg\", \"002_abCDeFG.png\")"
@@ -86,43 +76,14 @@
                (string/split #"\.")
                last))) ; The last item will be the file extension
 
-(defn create-save-path
-  "Creates a directory for the album, then builds the path
-  where the image will be saved as \"folder/filename\""
-  [album file]
-  (def path (str "imgur_" album "/" file)) ; Assemble the path
-  (.mkdir (File. (first (string/split path #"/")))) ; Create the directory if it does not exist
-  path) ; Return the path
-
-(defn save-image [path link]
-  (if (and (not (nil? path)) (not (nil? link)))
-    (do
-      (copy link path)
-      ; Wrap the println in a locking fn to ensure each line prints one at a time.
-      (locking o (println (str "Saving \"" link "\" to \"" path "\""))))))
-
-(defn fix-album-id
+(defn- fix-album-id
   "Converts imgur album URLs to album IDs.
-  \"https://imgur.com/a/abcDEF\" returns \"abcDEF\",
-   while \"abcDEF\" returns \"abcDEF\""
+  \"https://imgur.com/a/abcDEF\" returns \"abcDEF\""
   [album-id]
   (let [split-id (string/split album-id #"/")]
-    (if (> (count split-id) 1)                     ; A split URL will produce a list of more than one item
-      (get split-id (+ (.indexOf split-id "a") 1)) ; The album ID follows the "a" item
-      (first split-id))))                          ; A split album ID will only have one item
+    (get split-id (+ (.indexOf split-id "a") 1)))) ; The album ID follows the "a" item
 
-(defn parallel-save-image
-  "Fires off multiple save operations in parallel."
-  [path link]
-  ; Maps save-image as a future to the path and link vectors, kicking off threads in parallel
-  (let [threads (doall (map #(future
-                              (save-image %1 %2 )) path link))]
-    ; Wrap the doall in a def to avoid printing (nil, nil) lines for each image
-    (def done (doall (map deref threads)))) ; Block until all threads have finished
-  nil) ; Best to return nil compared to the last defined var, "done"
-
-(defn parallel-save-album
-  "Creates lists of image sources and destinations then executes a parallel download."
+(defn- get-urls-paths
   [album-id]
   (let [album (get-album (fix-album-id album-id))]
     (loop [images (:images album)
@@ -130,10 +91,18 @@
            links '[]] ; File URLs will be appended on each iteration
       (if (not (empty? images))
         (recur (rest images) ; Restart the loop with the remaining images and add path/link to vectors
-               (conj paths (create-save-path (get-album-title album) ; Add current image destination path
-                                             (get-file-name (first images)
-                                                            (+ 1 (- (count (:images album))
-                                                                    (count images)))
-                                                            (str "%0" (count (str (count (:images album)))) "d"))))
+               (conj paths (dl/create-save-path "imgur" (get-album-title album) ; Add current image destination path
+                                                (get-file-name (first images)
+                                                               (+ 1 (- (count (:images album))
+                                                                       (count images)))
+                                                               (str "%0" (count (str
+                                                                                  (count (:images album))))
+                                                                    "d"))))
                (conj links (:link (first images)))) ; Add current image source URL
-        (time (parallel-save-image paths links)))))) ; If no more images, execute the parallel save
+        {:urls links :paths paths}))))
+
+(defn save-album
+  "Creates lists of image sources and destinations then executes a parallel download."
+  [album-id]
+  (let [dl-info (get-urls-paths album-id)]
+    (time (dl/parallel-save-image (:paths dl-info) (:urls dl-info))))) ; execute the parallel save

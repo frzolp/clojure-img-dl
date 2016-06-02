@@ -14,11 +14,12 @@
 ; this program.  If not, see <http://www.gnu.org/licenses/>.
 (ns clojure-img-dl.core
   (:require [clojure-img-dl.dl.imgur :as imgur]
+            [clojure-img-dl.dl.vidble :as vidble]
             [clojure.string :as string])
   (:gen-class))
 
 (defn -main
-  "Downloads albums by ID or URL passed by command line arguments
+  "Downloads albums by URL passed by command line arguments
   ex. \"lein run https://imgur.com/a/aBcDE QWertY\""
   [& args]
   (loop [albums args]
@@ -26,8 +27,14 @@
       (if (not (string/blank? (first albums))) ; Is the current argument not empty?
         (do
           (println (str "Saving \"" (first albums) "\""))
-          (imgur/parallel-save-album (first albums))
+          (let [album (first albums)]
+            (cond
+              (true? (string/includes? album "vidble.com")) (vidble/save-album album)
+              (true? (string/includes? album "imgur.com")) (imgur/save-album album)
+              :else (do
+                      (println (str "Unknown image host for " album "."))
+                      (println "Only supports Imgur and Vidble at this time."))))
           (recur (rest albums)))
         (println "Done")) ; A blank string indicates end of argument list
-      (println "Usage: lein run [<imgur_album_url|imgurl_album_id> ...]"))) ; No args! Show usage
+      (println "Usage: <lein run | java -jar clojure-img-dl-(ver).jar> [<album_url> ...]"))) ; No args! Show usage
   (System/exit 0))       ; Explicitly exit upon completion or else completed futures will hang for 1 minute
